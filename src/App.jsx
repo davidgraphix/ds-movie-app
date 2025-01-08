@@ -1,92 +1,80 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import "bootstrap/dist/css/bootstrap.min.css";
+import "./App.css";
 import { MovieList } from "./components/MovieList";
+import { MovieListHeading } from "./components/MovieListHeading";
+import SearchBox from "./components/SearchBox";
+import AddFavourites from "./components/AddFavourites";
+import { use } from "react";
 
 const App = () => {
-  const [movies, setMovies] = useState([
-    {
-      Title: "Star Wars: Episode IV - A New Hope",
-      Year: "1977",
-      imdbID: "tt0076759",
-      Type: "movie",
-      Poster:
-        "https://m.media-amazon.com/images/M/MV5BOGUwMDk0Y2MtNjBlNi00NmRiLTk2MWYtMGMyMDlhYmI4ZDBjXkEyXkFqcGc@._V1_SX300.jpg",
-    },
-    {
-      Title: "Star Wars: Episode V - The Empire Strikes Back",
-      Year: "1980",
-      imdbID: "tt0080684",
-      Type: "movie",
-      Poster:
-        "https://m.media-amazon.com/images/M/MV5BMTkxNGFlNDktZmJkNC00MDdhLTg0MTEtZjZiYWI3MGE5NWIwXkEyXkFqcGc@._V1_SX300.jpg",
-    },
-    {
-      Title: "Star Wars: Episode VI - Return of the Jedi",
-      Year: "1983",
-      imdbID: "tt0086190",
-      Type: "movie",
-      Poster:
-        "https://m.media-amazon.com/images/M/MV5BNWEwOTI0MmUtMGNmNy00ODViLTlkZDQtZTg1YmQ3MDgyNTUzXkEyXkFqcGc@._V1_SX300.jpg",
-    },
-    {
-      Title: "Star Wars: Episode VII - The Force Awakens",
-      Year: "2015",
-      imdbID: "tt2488496",
-      Type: "movie",
-      Poster:
-        "https://m.media-amazon.com/images/M/MV5BOTAzODEzNDAzMl5BMl5BanBnXkFtZTgwMDU1MTgzNzE@._V1_SX300.jpg",
-    },
-    {
-      Title: "Star Wars: Episode I - The Phantom Menace",
-      Year: "1999",
-      imdbID: "tt0120915",
-      Type: "movie",
-      Poster:
-        "https://m.media-amazon.com/images/M/MV5BODVhNGIxOGItYWNlMi00YTA0LWI3NTctZmQxZGUwZDEyZWI4XkEyXkFqcGc@._V1_SX300.jpg",
-    },
-    {
-      Title: "Star Wars: Episode III - Revenge of the Sith",
-      Year: "2005",
-      imdbID: "tt0121766",
-      Type: "movie",
-      Poster:
-        "https://m.media-amazon.com/images/M/MV5BNTc4MTc3NTQ5OF5BMl5BanBnXkFtZTcwOTg0NjI4NA@@._V1_SX300.jpg",
-    },
-    {
-      Title: "Star Wars: Episode II - Attack of the Clones",
-      Year: "2002",
-      imdbID: "tt0121765",
-      Type: "movie",
-      Poster:
-        "https://m.media-amazon.com/images/M/MV5BNTgxMjY2YzUtZmVmNC00YjAwLWJlODMtNDBhNzllNzIzMjgxXkEyXkFqcGc@._V1_SX300.jpg",
-    },
-    {
-      Title: "Rogue One: A Star Wars Story",
-      Year: "2016",
-      imdbID: "tt3748528",
-      Type: "movie",
-      Poster:
-        "https://m.media-amazon.com/images/M/MV5BMjEwMzMxODIzOV5BMl5BanBnXkFtZTgwNzg3OTAzMDI@._V1_SX300.jpg",
-    },
-    {
-      Title: "Star Wars: Episode VIII - The Last Jedi",
-      Year: "2017",
-      imdbID: "tt2527336",
-      Type: "movie",
-      Poster:
-        "https://m.media-amazon.com/images/M/MV5BMjQ1MzcxNjg4N15BMl5BanBnXkFtZTgwNzgwMjY4MzI@._V1_SX300.jpg",
-    },
-    {
-      Title: "Star Wars: Episode IX - The Rise of Skywalker",
-      Year: "2019",
-      imdbID: "tt2527338",
-      Type: "movie",
-      Poster:
-        "https://m.media-amazon.com/images/M/MV5BODg5ZTNmMTUtYThlNy00NjljLWE0MGUtYmQ1NDg4NWU5MjQ1XkEyXkFqcGc@._V1_SX300.jpg",
-    },
-  ]);
+  const [movies, setMovies] = useState([]);
+  const [searchValue, setSearchValue] = useState("");
+  const [favourites, setFavourites] = useState([]);
+
+  const getMovieRequest = async (searchValue) => {
+    const url = `http://www.omdbapi.com/?s=${searchValue}&apikey=263d22d8`;
+    const response = await fetch(url);
+    const responseJson = await response.json();
+
+    if (responseJson.Search) {
+      setMovies(responseJson.Search);
+    }
+  };
+
+  useEffect(() => {
+    getMovieRequest(searchValue);
+  }, [searchValue]);
+
+  useEffect(() => {
+    const movieFavourites = JSON.parse(
+      localStorage.getItem("react-movie-app-favourites")
+    );
+
+    setFavourites(movieFavourites);
+  }, []);
+
+  const saveToLocalStorage = (items) => {
+    localStorage.setItem("react-movie-app-favourites", JSON.stringify(items));
+  };
+
+  const AddFavouriteMovie = (movie) => {
+    const newFavouriteList = [...favourites, movie];
+    setFavourites(newFavouriteList);
+    saveToLocalStorage(newFavouriteList);
+  };
+
+  const removeFavouriteMovie = (movie) => {
+    const newFavouriteList = favourites.filter(
+      (favourite) => favourite.imdbID !== movie.imdbID
+    );
+
+    setFavourites(newFavouriteList);
+    saveToLocalStorage(newFavouriteList);
+  };
   return (
-    <div>
-      <MovieList movies={movies} />
+    <div className="container-fluid movie-app">
+      <div className="row d-flex align-items-center mt-4 mb-4">
+        <MovieListHeading heading="Movies" />
+        <SearchBox searchValue={searchValue} setSearchValue={setSearchValue} />
+      </div>
+      <div className="row">
+        <MovieList
+          movies={movies}
+          handleFavouritesClick={AddFavouriteMovie}
+          favouriteComponent={AddFavourites}
+        />
+      </div>
+      <div className="row d-flex align-items-center mt-4 mb-4">
+        <MovieListHeading heading="Favourites" />
+      </div>
+      <div className="row">
+        <MovieList
+          movies={favourites}
+          handleFavouritesClick={AddFavouriteMovie}
+          favouriteComponent={AddFavourites}
+        />
+      </div>
     </div>
   );
 };
